@@ -74,132 +74,119 @@ def create_sqlit_connection(db_path, db_file):
 
 
 def encode_features():
-    cnx = None
-    try:
-        cnx = sqlite3.connect(DB_PATH + DB_FILE_NAME)
-        if not check_if_table_has_value(cnx, "features") or not check_if_table_has_value(
-            cnx, "target"
-        ):
-            print("Loading model_input table")
-            df = pd.read_sql("select * from model_input", cnx)
 
-            print("One hot encoding features")
-            # Implement these steps to prevent dimension mismatch during inference
-            encoded_df = pd.DataFrame(columns=ONE_HOT_ENCODED_FEATURES)  # from constants.py
-            placeholder_df = pd.DataFrame()
+    cnx = sqlite3.connect(DB_PATH + DB_FILE_NAME)
+    if not check_if_table_has_value(cnx, "features") or not check_if_table_has_value(
+        cnx, "target"
+    ):
+        print("Loading model_input table")
+        df = pd.read_sql("select * from model_input", cnx)
 
-            # One-Hot Encoding using get_dummies for the specified categorical features
-            for f in FEATURES_TO_ENCODE:
-                if f in df.columns:
-                    encoded = pd.get_dummies(df[f])
-                    encoded = encoded.add_prefix(f + "_")
-                    placeholder_df = pd.concat([placeholder_df, encoded], axis=1)
-                else:
-                    print(f + ",Feature not found")
-                    # return df
+        print("One hot encoding features")
+        # Implement these steps to prevent dimension mismatch during inference
+        encoded_df = pd.DataFrame(columns=ONE_HOT_ENCODED_FEATURES)  # from constants.py
+        placeholder_df = pd.DataFrame()
 
-            # Implement these steps to prevent dimension mismatch during inference
-            for feature in encoded_df.columns:
-                if feature in df.columns:
-                    encoded_df[feature] = df[feature]
-                if feature in placeholder_df.columns:
-                    encoded_df[feature] = placeholder_df[feature]
+        # One-Hot Encoding using get_dummies for the specified categorical features
+        for f in FEATURES_TO_ENCODE:
+            if f in df.columns:
+                encoded = pd.get_dummies(df[f])
+                encoded = encoded.add_prefix(f + "_")
+                placeholder_df = pd.concat([placeholder_df, encoded], axis=1)
+            else:
+                print(f + ",Feature not found")
+                # return df
 
-            encoded_df.fillna(0, inplace=True)
-            target = df[["app_complete_flag"]]
-            print("Storing target features to 'target' table")
-            target.to_sql(name="target", con=cnx, if_exists="replace", index=False)
-            print("Storing rest of features to 'feature' table")
-            encoded_df.to_sql(name="features", con=cnx, if_exists="replace", index=False)
-    except Exception as e:
-        print(f"Error during encoding features: {e}")
+        # Implement these steps to prevent dimension mismatch during inference
+        for feature in encoded_df.columns:
+            if feature in df.columns:
+                encoded_df[feature] = df[feature]
+            if feature in placeholder_df.columns:
+                encoded_df[feature] = placeholder_df[feature]
 
-    finally:
-        if cnx:
-            cnx.close()
+        encoded_df.fillna(0, inplace=True)
+        target = df[["app_complete_flag"]]
+        print("Storing target features to 'target' table")
+        target.to_sql(name="target", con=cnx, if_exists="replace", index=False)
+        print("Storing rest of features to 'feature' table")
+        encoded_df.to_sql(name="features", con=cnx, if_exists="replace", index=False)
+    cnx.close()
 
 # Define the function to train the model
 
 def get_trained_model():
 
     create_sqlit_connection(MLFLOW_PATH, DB_FILE_MLFLOW)
-    cnx = None
-    try:
-        cnx = sqlite3.connect(DB_PATH + DB_FILE_NAME)
-        if check_if_table_has_value(cnx, "features") and check_if_table_has_value(
-            cnx, "target"
-        ):
-            print("Loading 'features' table")
-            X = pd.read_sql("select * from features", cnx)
 
-            print("Loading 'target' table")
-            y = pd.read_sql("select * from target", cnx)
+    cnx = sqlite3.connect(DB_PATH + DB_FILE_NAME)
+    if check_if_table_has_value(cnx, "features") and check_if_table_has_value(
+        cnx, "target"
+    ):
+        print("Loading 'features' table")
+        X = pd.read_sql("select * from features", cnx)
 
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.2, random_state=100
-            )
+        print("Loading 'target' table")
+        y = pd.read_sql("select * from target", cnx)
 
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=100
+        )
+
+        # Model Training
+        # make sure to run mlflow server before this.
+
+        run_name = EXPERIMENT + "" + date.today().strftime("%d%m_%Y_%H_%M_%S")
+        mlflow.set_tracking_uri(TRACKING_URI)
+
+        with contextlib.suppress(Exception):
+            # Creating an experiment
+            logging.info("Creating mlflow experiment")
+            mlflow.create_experiment(EXPERIMENT)
+        # Setting the environment with the created experiment
+        mlflow.set_experiment(EXPERIMENT)
+
+        with mlflow.start_run(run_name=run_name) as run:
             # Model Training
+            clf = lgb.LGBMClassifier()
+            clf.set_params(**model_config)
+            clf.fit(X_train, y_train)
 
-            # make sure to run mlflow server before this.
+            mlflow.sklearn.log_model(
+                sk_model=clf, artifact_path="models", registered_model_name="LightGBM"
+            )
+            mlflow.log_params(model_config)
 
-            run_name = EXPERIMENT + "" + date.today().strftime("%d%m_%Y_%H_%M_%S")
-            mlflow.set_tracking_uri(TRACKING_URI)
+            # predict the results on training dataset
+            y_pred = clf.predict(X_test)
 
-            with contextlib.suppress(Exception):
-                # Creating an experiment
-                logging.info("Creating mlflow experiment")
-                mlflow.create_experiment(EXPERIMENT)
-            # Setting the environment with the created experiment
-            mlflow.set_experiment(EXPERIMENT)
+            # Log metrics
+            acc = accuracy_score(y_pred, y_test)
+            precision = precision_score(y_pred, y_test, average="macro")
+            recall = recall_score(y_pred, y_test, average="macro")
+            f1 = f1_score(y_pred, y_test, average="macro")
+            auc = roc_auc_score(y_pred, y_test, average="weighted", multi_class="ovr")
+            cm = confusion_matrix(y_test, y_pred)
+            tn = cm[0][0]
+            fn = cm[1][0]
+            tp = cm[1][1]
+            fp = cm[0][1]
 
-            with mlflow.start_run(run_name=run_name) as run:
-                # Model Training
-                clf = lgb.LGBMClassifier()
-                clf.set_params(**model_config)
-                clf.fit(X_train, y_train)
+            print("Precision=", precision)
+            print("Recall=", recall)
+            print("AUC=", auc)
 
-                mlflow.sklearn.log_model(
-                    sk_model=clf, artifact_path="models", registered_model_name="LightGBM"
-                )
-                mlflow.log_params(model_config)
+            mlflow.log_metric("test_accuracy", acc)
+            mlflow.log_metric("Precision", precision)
+            mlflow.log_metric("Recall", recall)
+            mlflow.log_metric("f1", f1)
+            mlflow.log_metric("AUC", auc)
+            mlflow.log_metric("True Negative", tn)
+            mlflow.log_metric("False Negative", fn)
+            mlflow.log_metric("True Positive", tp)
+            mlflow.log_metric("False Positive", fp)
 
-                # predict the results on training dataset
-                y_pred = clf.predict(X_test)
-
-                # Log metrics
-                acc = accuracy_score(y_pred, y_test)
-                precision = precision_score(y_pred, y_test, average="macro")
-                recall = recall_score(y_pred, y_test, average="macro")
-                f1 = f1_score(y_pred, y_test, average="macro")
-                auc = roc_auc_score(y_pred, y_test, average="weighted", multi_class="ovr")
-                cm = confusion_matrix(y_test, y_pred)
-                tn = cm[0][0]
-                fn = cm[1][0]
-                tp = cm[1][1]
-                fp = cm[0][1]
-
-                print("Precision=", precision)
-                print("Recall=", recall)
-                print("AUC=", auc)
-
-                mlflow.log_metric("test_accuracy", acc)
-                mlflow.log_metric("Precision", precision)
-                mlflow.log_metric("Recall", recall)
-                mlflow.log_metric("f1", f1)
-                mlflow.log_metric("AUC", auc)
-                mlflow.log_metric("True Negative", tn)
-                mlflow.log_metric("False Negative", fn)
-                mlflow.log_metric("True Positive", tp)
-                mlflow.log_metric("False Positive", fp)
-
-                runID = run.info.run_uuid
-                print(f"Inside MLflow Run with id {runID}")
-        else:
-            print("features or target table does not exist")
-    except Exception as e:
-        print(f"Error during encoding features: {e}")
-
-    finally:
-        if cnx:
-            cnx.close()
+            runID = run.info.run_uuid
+            print(f"Inside MLflow Run with id {runID}")
+    else:
+        print("features or target table does not exist")
+    cnx.close()
