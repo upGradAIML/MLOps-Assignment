@@ -5,9 +5,7 @@ creator: veneesh
 version: 1
 """
 
-###############################################################################
 # Import necessary modules
-# ##############################################################################
 
 import mlflow
 import mlflow.sklearn
@@ -35,10 +33,7 @@ def check_if_table_has_value(connection, table_name):
     return check_table == 1
 
 
-###############################################################################
 # Define the function to train the model
-# ##############################################################################
-
 
 def encode_features():
     """
@@ -60,6 +55,7 @@ def encode_features():
     SAMPLE USAGE
         encode_features()
     """
+    connection = None
     try:
         connection = sqlite3.connect(DB_PATH + DB_FILE_NAME)
         if not check_if_table_has_value(connection, "features"):
@@ -104,10 +100,7 @@ def _extracted_from_encode_features_24(connection):
     print("features created/replaced")
 
 
-###############################################################################
 # Define the function to load the model from mlflow model registry
-# ##############################################################################
-
 
 def get_models_prediction():
     """
@@ -129,6 +122,7 @@ def get_models_prediction():
     SAMPLE USAGE
         load_model()
     """
+    connection = None
     try:
         mlflow.set_tracking_uri(TRACKING_URI)
         connection = sqlite3.connect(DB_PATH + DB_FILE_NAME)
@@ -156,11 +150,7 @@ def get_models_prediction():
         if connection:
             connection.close()
 
-
-###############################################################################
 # Define the function to check the distribution of output column
-# ##############################################################################
-
 
 def prediction_ratio_check():
     """
@@ -184,6 +174,7 @@ def prediction_ratio_check():
     SAMPLE USAGE
         prediction_col_check()
     """
+    connection = None
     try:
         connection = sqlite3.connect(DB_PATH + DB_FILE_NAME)
         pred = pd.read_sql("select * from predictions", connection)
@@ -204,11 +195,7 @@ def prediction_ratio_check():
         if connection:
             connection.close()
 
-
-###############################################################################
 # Define the function to check the columns of input features
-# ##############################################################################
-
 
 def input_features_check():
     """
@@ -231,6 +218,7 @@ def input_features_check():
     SAMPLE USAGE
         input_col_check()
     """
+    connection = None
     try:
         # Creating an object
         logger = logging.getLogger()

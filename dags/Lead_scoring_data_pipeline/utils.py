@@ -1,7 +1,4 @@
-##############################################################################
 # Import necessary modules and files
-##############################################################################
-
 
 import pandas as pd
 import os
@@ -38,10 +35,7 @@ def check_if_table_has_value(cnx, table_name):
     return check_table == 1
 
 
-###############################################################################
 # Define the function to build database
-###############################################################################
-
 
 def build_dbs():
     """
@@ -70,16 +64,16 @@ def build_dbs():
     SAMPLE USAGE
         build_dbs()
     """
-    if os.path.isfile(DB_PATH + DB_FILE_NAME):
-        print("DB Already Exsist")
+    if os.path.isfile(DB_PATH+DB_FILE_NAME):
+        print("DB already exists")
         print(os.getcwd())
-        return "DB Exsist"
+        return "{DB_FILE_NAME} already exists"
     else:
         print("Creating Database")
         """ create a database connection to a SQLite database """
         conn = None
         try:
-            conn = sqlite3.connect(DB_PATH + DB_FILE_NAME)
+            conn = sqlite3.connect(DB_PATH+DB_FILE_NAME)
             print("New DB Created")
             return "DB created"
         except Error as e:
@@ -91,9 +85,9 @@ def build_dbs():
                 conn.close()
 
 
-###############################################################################
+#
 # Define function to load the csv file to the database
-###############################################################################
+#
 
 
 def load_data_into_db():
@@ -120,6 +114,7 @@ def load_data_into_db():
     SAMPLE USAGE
         load_data_into_db()
     """
+    conn = None
     try:
         conn = sqlite3.connect(DB_PATH + DB_FILE_NAME)
 
@@ -146,9 +141,9 @@ def _extracted_from_load_data_into_db_29(conn):
     df.to_sql(name="loaded_data", con=conn, if_exists="replace", index=False)
 
 
-###############################################################################
+#
 # Define function to map cities to their respective tiers
-###############################################################################
+#
 
 
 def map_city_tier():
@@ -176,6 +171,7 @@ def map_city_tier():
         map_city_tier()
 
     """
+    conn = None
     try:
         conn = sqlite3.connect(DB_PATH + DB_FILE_NAME)
         if not check_if_table_has_value(conn, "city_tier_mapped"):
@@ -204,9 +200,9 @@ def _extracted_from_map_city_tier_29(conn):
     df.to_sql(name="city_tier_mapped", con=conn, if_exists="replace", index=False)
 
 
-###############################################################################
+#
 # Define function to map insignificant categorial variables to "others"
-###############################################################################
+#
 
 
 def map_categorical_vars():
@@ -240,6 +236,7 @@ def map_categorical_vars():
     SAMPLE USAGE
         map_categorical_vars()
     """
+    conn = None
     try:
         conn = sqlite3.connect(DB_PATH + DB_FILE_NAME)
         if not check_if_table_has_value(conn, "categorical_variables_mapped"):
@@ -307,9 +304,9 @@ def _extracted_from_map_categorical_vars_35(conn):
     )
 
 
-##############################################################################
+
 # Define function that maps interaction columns into 4 types of interactions
-##############################################################################
+
 def interactions_mapping():
     """
     This function maps the interaction columns into 4 unique interaction columns
@@ -343,6 +340,7 @@ def interactions_mapping():
     SAMPLE USAGE
         interactions_mapping()
     """
+    conn = None
     try:
         conn = sqlite3.connect(DB_PATH + DB_FILE_NAME)
         if not check_if_table_has_value(

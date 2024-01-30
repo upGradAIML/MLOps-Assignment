@@ -1,6 +1,5 @@
 
 #Import necessary modules
-############################################################################## 
 
 
 import pandas as pd
@@ -9,9 +8,7 @@ from Lead_scoring_data_pipeline.constants import *
 from Lead_scoring_data_pipeline.schema import *
 import sqlite3
 
-###############################################################################
 # Define function to validate raw data's schema
-# ############################################################################## 
 
 def raw_data_schema_check():
     '''
@@ -44,9 +41,7 @@ def raw_data_schema_check():
     except Exception as e:
          print (f'Exception thrown in raw_data_schema_check : {e}')
 
-###############################################################################
 # Define function to validate model's input schema
-# ############################################################################## 
 
 def model_input_schema_check():
     '''
@@ -69,6 +64,7 @@ def model_input_schema_check():
     SAMPLE USAGE
         raw_data_schema_check
     '''
+    cnx = None
     try:
         cnx = sqlite3.connect(DB_PATH + DB_FILE_NAME)
         df = pd.read_sql('select * from model_input', cnx)          
