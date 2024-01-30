@@ -1,0 +1,8 @@
+# MLFlow
+mlflow server --backend-store-uri='sqlite:////home/zinger/Documents/upgrad/MLOps/4-CodePro/notebooks/lead_scoring_model_experimentation.db' --default-artifact-root="/home/zinger/Documents/upgrad/MLOps/4-CodePro/mlruns/" --port=6007 --host=0.0.0.0
+
+# After configuring the dag location in airflow.cfg, run the below commands
+airflow db migrate
+airflow users create --username ugprad --firstname upgrad  --lastname upgrad  --role Admin  --email test@upgrad.com 
+airflow scheduler
+airflow webserver
