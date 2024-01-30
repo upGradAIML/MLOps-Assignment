@@ -1,10 +1,10 @@
 # experiment, model name and stage to load the model from mlflow model registry
-TRACKING_URI = "http://0.0.0.0:6007"
+TRACKING_URI = "http://0.0.0.0:6006"
 MODEL_NAME = "LightGBM"
-STAGE = "production"
+TAG_VALUE = "production"
 EXPERIMENT = "Lead_scoring_mlflow_production"
-FILE_PATH = "/home/zinger/Docments/upgrad/MLOps/4-CodePro/dags/Lead_scoring_inference_pipeline/prediction_distribution.txt"
-INFER_PATH = "/home/zinger/Docments/upgrad/MLOps/4-CodePro/dags/Lead_scoring_inference_pipeline/leadscoring_inference_final_v2.csv"
+FILE_PATH = "/home/zinger/Documents/upgrad/MLOps/4-CodePro/dags/Lead_scoring_inference_pipeline/prediction_distribution.txt"
+INFER_PATH = "/home/zinger/Documents/upgrad/MLOps/4-CodePro/dags/Lead_scoring_inference_pipeline/leadscoring_inference_final_v2.csv"
 # list of the features that needs to be there in the final encoded dataframe
 ONE_HOT_ENCODED_FEATURES = [
     "total_leads_droppped",
