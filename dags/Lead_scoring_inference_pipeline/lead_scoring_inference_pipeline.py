@@ -20,7 +20,7 @@ Lead_scoring_inference_dag = DAG(
                 dag_id = 'Lead_scoring_inference_pipeline',
                 default_args = default_args,
                 description = 'Inference pipeline of Lead Scoring system',
-                schedule_interval = '@hourly',
+                schedule = '@hourly',
                 catchup = False
 )
 

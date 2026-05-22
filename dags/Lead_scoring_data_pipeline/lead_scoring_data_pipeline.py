@@ -26,7 +26,7 @@ ML_data_cleaning_dag = DAG(
                 dag_id = 'Lead_scoring_data_pipeline',
                 default_args = default_args,
                 description = 'DAG to run data pipeline for lead scoring',
-                schedule_interval = '@daily',
+                schedule = '@daily',
                 catchup = False
 )
 
