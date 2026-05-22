@@ -1,8 +1,14 @@
+# Requirements
+pip install mlflow
+pip install apache-airflow-providers-fab
+pip install lightgbm
+
 # MLFlow
-mlflow server --backend-store-uri='sqlite:////home/zinger/Documents/upgrad/MLOps/4-CodePro/notebooks/lead_scoring_model_experimentation.db' --default-artifact-root="/home/zinger/Documents/upgrad/MLOps/4-CodePro/mlruns/" --port=6007 --host=0.0.0.0
+mlflow server --backend-store-uri='sqlite:////home/zinger/projects/mlops/notebooks/lead_scoring_model_experimentation.db' --default-artifact-root="/home/zinger/projects/mlops/mlruns/" --port=6007 --host=0.0.0.0
 
 # After configuring the dag location in airflow.cfg, run the below commands
 airflow db migrate
-airflow users create --username ugprad --firstname upgrad  --lastname upgrad  --role Admin  --email test@upgrad.com 
+airflow users create -e test@test.com -f Test -l User -p 123 -r Admin -u test
+airflow dag-processor (this will take a while to finish)
 airflow scheduler
-airflow webserver
+airflow api-server
