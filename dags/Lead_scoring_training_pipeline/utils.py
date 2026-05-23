@@ -185,7 +185,7 @@ def get_trained_model():
             mlflow.log_metric("True Positive", tp)
             mlflow.log_metric("False Positive", fp)
 
-            runID = run.info.run_uuid
+            runID = run.info.run_id
             print(f"Inside MLflow Run with id {runID}")
     else:
         print("features or target table does not exist")
