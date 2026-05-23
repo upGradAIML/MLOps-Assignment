@@ -1,5 +1,5 @@
 # experiment, model name and stage to load the model from mlflow model registry
-TRACKING_URI = "http://0.0.0.0:6006"
+TRACKING_URI = "http://0.0.0.0:6007"
 MODEL_NAME = "LightGBM"
 TAG_VALUE = "production"
 EXPERIMENT = "Lead_scoring_mlflow_production"

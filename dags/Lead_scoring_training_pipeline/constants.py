@@ -4,7 +4,7 @@ DB_FILE_NAME = "lead_scoring_data_cleaning.db"
 MLFLOW_PATH = "/home/zinger/projects/mlops/notebooks/"
 DB_FILE_MLFLOW = "lead_scoring_model_experimentation.db"
 
-TRACKING_URI = "http://0.0.0.0:6006"
+TRACKING_URI = "http://0.0.0.0:6007"
 EXPERIMENT = "Lead_scoring_mlflow_production"
 
 
